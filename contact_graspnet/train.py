@@ -19,7 +19,8 @@ import tensorflow.compat.v1 as tf
 tf.disable_eager_execution()
 TF2 = True
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+for i in range(len(physical_devices)):
+    tf.config.experimental.set_memory_growth(physical_devices[i], True)
     
 import config_utils
 from data import PointCloudReader, load_scene_contacts, center_pc_convert_cam
@@ -124,11 +125,15 @@ def train_one_epoch(sess, ops, summary_ops, file_writers, pcreader):
     log_string(str(datetime.now()))
     loss_log = np.zeros((10,7))
     get_time = time.time()
-    
+    i=0
     for batch_idx in range(pcreader._num_train_samples):
 
-        batch_data, cam_poses, scene_idx = pcreader.get_scene_batch(scene_idx=batch_idx)
-        
+        batch_data, cam_poses, scene_idx = pcreader.get_scene_batch(scene_idx=batch_idx,save=True)
+        i = i+1
+        # if(i<10):
+        #     continue
+        # else:
+        #     assert False        
         # OpenCV OpenGL conversion
         cam_poses, batch_data = center_pc_convert_cam(cam_poses, batch_data)
         
@@ -148,7 +153,8 @@ def train_one_epoch(sess, ops, summary_ops, file_writers, pcreader):
             f = tuple(np.mean(loss_log, axis=0)) + ((time.time() - get_time) / 10., )
             log_string('total loss: %f \t dir loss: %f \t ce loss: %f \t off loss: %f \t app loss: %f adds loss: %f \t adds_gt2pred loss: %f \t batch time: %f' % f)
             get_time = time.time()
-            
+
+    # assert False
     return step
 
 def eval_validation_scenes(sess, ops, summary_ops, file_writers, pcreader, max_eval_objects=500):

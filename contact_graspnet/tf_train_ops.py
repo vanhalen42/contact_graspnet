@@ -3,7 +3,9 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 tf.disable_eager_execution()
 TF2 = True
-
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+for i in range(len(physical_devices)):
+    tf.config.experimental.set_memory_growth(physical_devices[i], True)
 from data import farthest_points
 
 def get_learning_rate(step, optimizer_config):
@@ -223,7 +225,7 @@ def load_contact_grasps(contact_list, data_config):
         pos_idcs = np.where(all_contact_suc>0)[0]
         if len(pos_idcs) == 0:
             continue
-        print('total positive contact points ', len(pos_idcs))
+        # print('total positive contact points ', len(pos_idcs))
         
         all_pos_contact_points = all_contact_points[pos_idcs]
         all_pos_finger_diffs = all_finger_diffs[pos_idcs//2]
@@ -244,6 +246,7 @@ def load_contact_grasps(contact_list, data_config):
         pos_approach_dirs.append(all_pos_approach_dirs[pos_sampled_contact_idcs])
 
     device = "/cpu:0" if 'to_gpu' in data_config['labels'] and not data_config['labels']['to_gpu'] else "/gpu:0"
+    # device = "/gpu:0"
     print("grasp label device: ", device)
 
     with tf.device(device):

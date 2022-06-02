@@ -1,3 +1,5 @@
+import subprocess
+from hashlib import new
 import os
 import sys
 
@@ -39,8 +41,10 @@ def load_scene_contacts(dataset_folder, test_split_only=False, num_test=None, sc
     if test_split_only:
         scene_contact_paths = scene_contact_paths[-num_test:]
     contact_infos = []
+    i=0
     for contact_path in scene_contact_paths:
-        print(contact_path)
+        i = i+1
+        # print(contact_path)
         try:
             npz = np.load(contact_path, allow_pickle=False)
             contact_info = {'scene_contact_points':npz['scene_contact_points'],
@@ -48,6 +52,15 @@ def load_scene_contacts(dataset_folder, test_split_only=False, num_test=None, sc
                             'obj_transforms':npz['obj_transforms'],
                             'obj_scales':npz['obj_scales'],
                             'grasp_transforms':npz['grasp_transforms']}
+            temp_list=np.char.split(contact_info['obj_paths'],sep='/')
+            new_list = []
+            for val in temp_list:
+                new_list.append(val[0]+'/'+val[2])
+                if (os.path.exists(f'{dataset_folder}/{val[0]}/{val[2]}')):
+                    pass #rint(f'{dataset_folder}/{val[0]}/{val[2]}')
+                else:
+                    exit()
+            contact_info['obj_paths']=np.array(new_list)
             contact_infos.append(contact_info)
         except:
             print('corrupt, ignoring..')
@@ -300,7 +313,7 @@ def load_available_input_data(p, K=None):
     :returns: All available data among segmap, rgb, depth, cam_K, pc_full, pc_colors
     """
     
-    segmap, rgb, depth, pc_full, pc_colors = None, None, None, None, None
+    segmap, rgb, depth, pc_full, pc_colors, cam_K = None, None, None, None, None , None
 
     if K is not None:
         if isinstance(K,str):
@@ -627,7 +640,7 @@ class PointCloudReader:
             
         if save:
             K = np.array([[616.36529541,0,310.25881958 ],[0,616.20294189,236.59980774],[0,0,1]])
-            data = {'depth':depth, 'K':K, 'camera_pose':camera_pose, 'scene_idx':scene_idx}
+            data = {'depth':depth, 'K':K, 'camera_pose':camera_pose, 'scene_idx':scene_idx}#,'batch_data':batch_data}
             if return_segmap:
                 data.update(segmap=segmap)
             np.savez('results/{}_acronym.npz'.format(scene_idx), data)

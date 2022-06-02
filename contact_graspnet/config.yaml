@@ -157,7 +157,7 @@ MODEL:
   pred_grasps_adds_gt2pred: false
 OPTIMIZER:
   max_epoch: 16
-  batch_size: 3
+  batch_size: 1
   learning_rate: 0.001
   optimizer: adam
   momentum: 0.9
